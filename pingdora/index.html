@@ -1,0 +1,460 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>핑도라 사이즈 가이드</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+  /* 테마 색상 */
+  :root {
+    --bg: #fbf7f4; --paper: #ffffff; --ink: #3b302b; --muted: #9a8c84; --line: #efe6df;
+    --c1: #e8a9a4; --c2: #f7e3df; --c3: #fdf2ef; --deep: #b9726c;
+    --ok: #6f9a7c; --warn: #c48a3f; --bad: #c0675c;
+    --radius: 22px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: "Pretendard", -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+    line-height: 1.5; -webkit-font-smoothing: antialiased; transition: background .3s;
+  }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 20px 16px 72px; }
+
+  /* 헤더 */
+  .hero { position: relative; text-align: center; padding: 36px 8px 28px; }
+  .hero .shopname { font-size: 15px; font-weight: 700; color: var(--deep); letter-spacing: .02em; }
+  .hero h1 { font-size: clamp(26px, 5vw, 36px); font-weight: 800; letter-spacing: -0.03em; margin: 6px 0 8px; }
+  .hero p { margin: 0; color: var(--muted); font-size: 15px; }
+  .deco { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+  .deco span { position: absolute; border-radius: 50%; background: var(--c2); opacity: .7; }
+
+  /* 입력 카드 */
+  .form {
+    background: var(--paper); border-radius: var(--radius); padding: 22px;
+    box-shadow: 0 10px 30px -18px rgba(80, 50, 40, .25); border: 1px solid var(--line);
+    display: grid; gap: 18px; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+  .form > div { min-width: 0; }
+  .field-label { font-size: 13px; font-weight: 600; color: var(--muted); margin-bottom: 8px; display: block; }
+  .stepper {
+    display: flex; align-items: center; background: var(--c3); border-radius: 16px; padding: 6px;
+  }
+  .stepper button {
+    width: 40px; height: 40px; flex: none; border: 0; border-radius: 12px; background: var(--paper);
+    color: var(--deep); font-size: 20px; cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,.06);
+  }
+  .stepper button:active { transform: scale(.94); }
+  .stepper input {
+    flex: 1; min-width: 0; border: 0; background: transparent; text-align: center; font: inherit;
+    font-size: 24px; font-weight: 800; color: var(--ink); outline: none; -moz-appearance: textfield;
+  }
+  .stepper input::-webkit-outer-spin-button, .stepper input::-webkit-inner-spin-button { -webkit-appearance: none; }
+  .stepper input::placeholder { color: #cfc4bd; font-weight: 600; }
+  .unit { font-size: 14px; color: var(--muted); padding-right: 8px; }
+  .full { grid-column: 1 / -1; }
+  .chips { display: flex; gap: 8px; flex-wrap: wrap; }
+  .chip {
+    border: 1px solid var(--line); background: var(--paper); color: var(--ink); border-radius: 99px;
+    padding: 8px 16px; font: inherit; font-size: 14px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+    transition: all .15s;
+  }
+  .chip svg { width: 18px; height: 18px; }
+  .chip.on { background: var(--c2); border-color: var(--c1); color: var(--deep); font-weight: 700; }
+  .brand-chips { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
+  .brand-chips::-webkit-scrollbar { display: none; }
+  .brand-chips .chip { white-space: nowrap; }
+
+  /* 결과 */
+  .status { text-align: center; color: var(--muted); font-size: 14px; margin: 26px 0 14px; }
+  .status b { color: var(--deep); }
+  .grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); }
+  .card {
+    background: var(--paper); border-radius: var(--radius); padding: 18px; border: 1px solid var(--line);
+    display: flex; flex-direction: column; gap: 12px; animation: up .35s ease both;
+  }
+  @keyframes up { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  .card-top { display: flex; align-items: center; gap: 14px; }
+  .bubble {
+    width: 72px; height: 72px; flex: none; border-radius: 50%; background: var(--c1); color: #fff;
+    display: grid; place-items: center; font-weight: 800; font-size: 22px; letter-spacing: -0.02em;
+    box-shadow: inset 0 -4px 0 rgba(0,0,0,.06);
+  }
+  .bubble.none { background: var(--c3); color: var(--muted); font-size: 13px; font-weight: 600; }
+  .bubble.small { font-size: 18px; }
+  .bubble.over { background: var(--c3); color: var(--deep); box-shadow: inset 0 0 0 2px var(--c2); }
+  .brand { font-weight: 800; font-size: 17px; letter-spacing: -0.01em; }
+  .tag { display: inline-block; font-size: 12px; color: var(--deep); background: var(--c3); border-radius: 99px; padding: 2px 10px; margin-top: 4px; }
+  .alt { font-size: 13px; color: var(--muted); margin-top: 4px; }
+  .alt b { color: var(--deep); }
+  .why { font-size: 13px; color: var(--muted); background: var(--bg); border-radius: 12px; padding: 8px 12px; }
+  .badges { display: flex; flex-wrap: wrap; gap: 6px; }
+  .badge { font-size: 12px; padding: 3px 10px; border-radius: 99px; }
+  .b-warn { background: #fbf1e3; color: var(--warn); }
+  .b-bad { background: #f9e7e3; color: var(--bad); }
+  .b-ok { background: #e9f2ea; color: var(--ok); }
+
+  details { border-top: 1px dashed var(--line); padding-top: 10px; }
+  summary { cursor: pointer; font-size: 13px; color: var(--muted); list-style: none; display: flex; justify-content: space-between; }
+  summary::-webkit-details-marker { display: none; }
+  summary::after { content: "+"; font-size: 16px; line-height: 1; }
+  details[open] summary::after { content: "–"; }
+  table { width: 100%; border-collapse: separate; border-spacing: 0 4px; font-size: 13px; margin-top: 8px; }
+  th { color: var(--muted); font-weight: 500; font-size: 12px; padding: 4px; }
+  td { text-align: center; padding: 7px 4px; background: var(--bg); }
+  td:first-child { border-radius: 10px 0 0 10px; font-weight: 700; }
+  td:last-child { border-radius: 0 10px 10px 0; }
+  td small { display: block; font-weight: 400; color: var(--muted); font-size: 11px; }
+  tr.pick td { background: var(--c2); color: var(--deep); font-weight: 700; }
+  tr.pick2 td { background: var(--c3); }
+  .note { font-size: 12px; color: var(--muted); margin: 8px 0 0; }
+
+  .empty { grid-column: 1 / -1; text-align: center; padding: 30px 0 10px; color: var(--muted); font-size: 14px; }
+  .empty svg { width: 120px; height: auto; display: block; margin: 0 auto 10px; }
+
+  footer { margin-top: 36px; text-align: center; font-size: 12px; color: var(--muted); line-height: 1.7; }
+
+  @media (max-width: 560px) {
+    .form { grid-template-columns: minmax(0, 1fr); padding: 18px; }
+    .grid { grid-template-columns: 1fr; }
+    .hero { padding: 26px 4px 20px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hero">
+    <div class="deco" aria-hidden="true">
+      <span style="width:90px;height:90px;left:4%;top:18px"></span>
+      <span style="width:46px;height:46px;left:16%;bottom:6px"></span>
+      <span style="width:70px;height:70px;right:6%;top:6px"></span>
+      <span style="width:30px;height:30px;right:18%;bottom:14px"></span>
+    </div>
+    <div class="shopname" id="shopName"></div>
+    <h1>우리 아이 사이즈 찾기</h1>
+    <p>키와 몸무게만 넣으면 브랜드별 사이즈를 골라드려요</p>
+  </header>
+
+  <section class="form">
+    <div>
+      <span class="field-label">키</span>
+      <div class="stepper">
+        <button type="button" data-step="h" data-d="-1" aria-label="키 줄이기">−</button>
+        <input id="h" type="number" inputmode="decimal" placeholder="90" min="40" max="160" step="0.1" aria-label="키 (cm)">
+        <span class="unit">cm</span>
+        <button type="button" data-step="h" data-d="1" aria-label="키 늘리기">+</button>
+      </div>
+    </div>
+    <div>
+      <span class="field-label">몸무게</span>
+      <div class="stepper">
+        <button type="button" data-step="w" data-d="-0.5" aria-label="몸무게 줄이기">−</button>
+        <input id="w" type="number" inputmode="decimal" placeholder="13" min="2" max="50" step="0.1" aria-label="몸무게 (kg)">
+        <span class="unit">kg</span>
+        <button type="button" data-step="w" data-d="0.5" aria-label="몸무게 늘리기">+</button>
+      </div>
+    </div>
+    <div>
+      <span class="field-label">어떤 옷인가요?</span>
+      <div class="chips" id="cat">
+        <button class="chip on" data-v="top"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M8 3 3 6l2 4 2-1v12h10V9l2 1 2-4-5-3c0 1.7-1.8 3-4 3S8 4.7 8 3Z"/></svg>상의</button>
+        <button class="chip" data-v="bottom"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M6 3h12l1 18h-5l-2-11-2 11H5L6 3Z"/></svg>하의</button>
+        <button class="chip" data-v="outer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M9 3 4 6 2 13l3 1v7h14v-7l3-1-2-7-5-3-3 4-3-4Z"/><path d="M12 7v14"/></svg>아우터</button>
+      </div>
+    </div>
+    <div>
+      <span class="field-label">라인</span>
+      <div class="chips" id="lineFilter">
+        <button class="chip on" data-v="all">전체</button>
+        <button class="chip" data-v="baby">베이비</button>
+        <button class="chip" data-v="kids">키즈</button>
+      </div>
+    </div>
+    <div class="full">
+      <span class="field-label">브랜드</span>
+      <div class="chips brand-chips" id="brandChips"></div>
+    </div>
+  </section>
+
+  <div class="status" id="status"></div>
+  <div class="grid" id="grid"></div>
+
+  <footer>
+    평균적인 사이즈표 기준이며 아이의 체형이나 디자인의 핏감에 따라 차이가 있을 수 있어요.<br>
+    여유 있게 입히고 싶다면 한 사이즈 크게 골라주세요.
+  </footer>
+</div>
+
+<script>
+/*
+  쇼핑몰 설정
+  - brands: 이 쇼핑몰에서 보여줄 브랜드 이름 목록 (null이면 전체 브랜드)
+    예: brands: ['더랄라', '멜멜', '보니토']
+*/
+const SHOP = { name: '핑도라', brands: null };
+
+/*
+  브랜드 사이즈표 데이터
+  - h: [최소키, 최대키] (cm), w: [최소몸무게, 최대몸무게] (kg)
+  - 값이 없는 쪽은 null ("~68cm" → [null, 68], 정보 없음 → null)
+  - age: 표에 적힌 권장 연령 (표시용)
+*/
+const BRANDS = [
+  { brand: '더랄라', line: 'baby', title: '베이비', sizes: [
+    { label: 'XS', alt: '0~6m',  age: '0~6개월',  h: [null, 68], w: [4, 7] },
+    { label: 'S',  alt: '6~12m', age: '6~12개월', h: [68, 76],  w: [7, 10] },
+    { label: 'M',  alt: '12~18m', age: '12~18개월', h: [76, 86], w: [10, 13] },
+  ]},
+  { brand: '더랄라', line: 'kids', title: '키즈', sizes: [
+    { label: 'XS', alt: '1~2y', age: '1~2세', h: [null, 75], w: [5, 10] },
+    { label: 'S',  alt: '2~3y', age: '2~3세', h: [75, 85],  w: [10, 12] },
+    { label: 'M',  alt: '3~4y', age: '3~4세', h: [85, 95],  w: [13, 15] },
+    { label: 'L',  alt: '4~5y', age: '4~5세', h: [95, 105], w: [15, 18] },
+    { label: 'XL', alt: '5~6y', age: '5~6세', h: [105, 115], w: [18, 20] },
+  ]},
+  { brand: '디그린', line: 'kids', title: '키즈', note: '양말: S 12-15 · M 15-17 · L 17-20 · XL 20-23cm (발길이)', sizes: [
+    { label: 'S',   alt: '5호 · 90',  h: [85, 90],   w: [11, 13] },
+    { label: 'M',   alt: '7호 · 100', h: [95, 100],  w: [13, 15] },
+    { label: 'L',   alt: '9호 · 110', h: [105, 110], w: [15, 17] },
+    { label: 'XL',  alt: '11호 · 120', h: [115, 120], w: [17, 20] },
+    { label: 'XXL', alt: '13호 · 130', h: [125, 130], w: [20, 25] },
+  ]},
+  { brand: '라라랜드베베', line: 'baby', title: '베이비', sizes: [
+    { label: '6m',  h: [null, 66], w: [null, 8] },
+    { label: '12m', h: [null, 74], w: [null, 10] },
+    { label: '18m', h: [null, 82], w: [null, 12] },
+  ]},
+  { brand: '라라랜드키즈', line: 'kids', title: '키즈', sizes: [
+    { label: 'XS', h: [75, 85],   w: [9, 11] },
+    { label: 'S',  h: [85, 95],   w: [11, 13] },
+    { label: 'M',  h: [95, 105],  w: [13, 15] },
+    { label: 'L',  h: [105, 112], w: [15, 20] },
+    { label: 'XL', h: [112, 120], w: [19, 22] },
+  ]},
+  { brand: '멜멜', line: 'kids', title: '키즈', sizes: [
+    { label: 'XXS', alt: '80',  age: '1~2세', h: [72, 80],   w: [8, 11] },
+    { label: 'XS',  alt: '90',  age: '2~3세', h: [80, 92],   w: [11, 14] },
+    { label: 'S',   alt: '100', age: '4~5세', h: [92, 100],  w: [14, 18] },
+    { label: 'M',   alt: '110', age: '5~6세', h: [100, 108], w: [18, 22] },
+    { label: 'L',   alt: '120', age: '6~7세', h: [108, 116], w: [22, 26] },
+    { label: 'XL',  alt: '130', age: '7~8세', h: [116, 125], w: [26, 30] },
+  ]},
+  { brand: '미니로브', line: 'kids', title: '키즈', note: '양말: XS 10-12 · S 12-15 · M 15-17cm (발길이)', sizes: [
+    { label: 'S',  alt: '1 · 80',  h: [70, 80],   w: [null, 12] },
+    { label: 'M',  alt: '2 · 90',  h: [80, 90],   w: [null, 15] },
+    { label: 'L',  alt: '3 · 100', h: [90, 100],  w: [null, 17] },
+    { label: 'XL', alt: '4 · 110', h: [100, 110], w: [null, 19] },
+  ]},
+  { brand: '보니토', line: 'baby', title: '베이비 (2세 이하)', note: '같은 12m이라도 베이비 라인이 좀 더 작게 나와요. 키 정보가 없어 몸무게로만 추천해요.', sizes: [
+    { label: '6m',  age: '3~6개월',  h: null, w: [null, 7] },
+    { label: '12m', age: '6~12개월', h: null, w: [null, 10] },
+    { label: '18m', age: '12~18개월', h: null, w: [null, 12] },
+  ]},
+  { brand: '보니토', line: 'kids', title: '키즈 · 주니어', sizes: [
+    { label: '12m', alt: '80',  age: '12~18개월', h: [null, 80], w: [null, 10] },
+    { label: 'XS',  alt: '3호',  age: '2~3세',  h: [80, 85],   w: [null, 12] },
+    { label: 'S',   alt: '5호',  age: '3~4세',  h: [85, 95],   w: [null, 14] },
+    { label: 'M',   alt: '7호',  age: '4~5세',  h: [95, 105],  w: [14, 17] },
+    { label: 'L',   alt: '9호',  age: '5~6세',  h: [105, 115], w: [17, 20] },
+    { label: 'XL',  alt: '11호', age: '6~7세',  h: [115, 125], w: [20, 24] },
+    { label: 'JS',  alt: '13호', age: '7~8세',  h: [125, 135], w: [25, 30] },
+    { label: 'JM',  alt: '15호', age: '9~10세', h: [135, 140], w: [30, 35] },
+  ]},
+  { brand: '소이빈', line: 'kids', title: '키즈 · 주니어', sizes: [
+    { label: 'XXS', h: [null, 75], w: [null, 9] },
+    { label: 'XS',  h: [75, 80],   w: [null, 11] },
+    { label: 'S',   h: [80, 90],   w: [null, 13] },
+    { label: 'M',   h: [90, 100],  w: [null, 15] },
+    { label: 'L',   h: [100, 110], w: [null, 18] },
+    { label: 'XL',  h: [110, 118], w: [null, 21] },
+    { label: 'JS',  h: [119, 125], w: [null, 25] },
+    { label: 'JM',  h: [125, 133], w: [null, 30] },
+    { label: 'JL',  h: [133, 140], w: [null, 35] },
+  ]},
+  { brand: '아오스타', line: 'baby', title: '베이비슈트 · 블루머', sizes: [
+    { label: 'S', alt: '66', age: '0~6개월',   h: [null, 66], w: [0, 7] },
+    { label: 'M', alt: '73', age: '6~12개월',  h: [66, 73],   w: [7, 10] },
+    { label: 'L', alt: '80', age: '12~24개월', h: [73, 85],   w: [10, 13] },
+  ]},
+  { brand: '아오스타', line: 'kids', title: '기본 사이즈', sizes: [
+    { label: 'S',   alt: '70',  age: '0~1세', h: [null, 70], w: [3, 10] },
+    { label: 'M',   alt: '80',  age: '1~2세', h: [70, 80],   w: [7, 12] },
+    { label: 'L',   alt: '90',  age: '2~3세', h: [80, 95],   w: [10, 15] },
+    { label: 'XL',  alt: '100', age: '3~4세', h: [90, 105],  w: [12, 18] },
+    { label: 'XXL', alt: '110', age: '4~5세', h: [100, 115], w: [15, 24] },
+  ]},
+  { brand: '아오스타', line: 'kids', title: '니트', sizes: [
+    { label: 'S', alt: '80',  age: '0~2세', h: [null, 80], w: [3, 10] },
+    { label: 'M', alt: '90',  age: '1~3세', h: [80, 100],  w: [10, 15] },
+    { label: 'L', alt: '100', age: '3~5세', h: [90, 115],  w: [13, 24] },
+  ]},
+  { brand: '아토메메', line: 'kids', title: '베이비&키즈', note: '몸무게 정보가 없어 키로만 추천해요. 양말: XS 10-12 · S 12-15 · M 15-17cm', sizes: [
+    { label: 'S',  alt: '1 · 80',  age: '10~18개월', h: [70, 80],   w: null },
+    { label: 'M',  alt: '2 · 90',  age: '18~24개월', h: [80, 90],   w: null },
+    { label: 'L',  alt: '3 · 100', age: '24~36개월', h: [90, 100],  w: null },
+    { label: 'XL', alt: '4 · 110', age: '36~48개월', h: [100, 110], w: null },
+  ]},
+];
+
+const state = { cat: 'top', line: 'all', brand: '' };
+const $ = (id) => document.getElementById(id);
+
+function fmtRange(r) {
+  if (!r) return '-';
+  const [a, b] = r;
+  if (a == null && b == null) return '-';
+  if (a == null) return `~${b}`;
+  if (b == null) return `${a}~`;
+  return `${a}~${b}`;
+}
+
+/*
+  추천 방식: 키·몸무게 각각 "이 값을 넘지 않는 가장 작은 사이즈"를 찾고,
+  둘 중 더 큰 사이즈를 기본 추천으로 고릅니다. (아이 옷은 작은 것보다 큰 게 안전)
+*/
+function fitIndex(sizes, key, value) {
+  if (value == null || sizes.every((s) => !s[key])) return null;
+  for (let i = 0; i < sizes.length; i++) {
+    const r = sizes[i][key];
+    if (r && r[1] != null && value <= r[1]) return i;
+  }
+  return sizes.length; // 모든 사이즈 초과
+}
+
+function recommend(chart, h, w, cat) {
+  const sizes = chart.sizes;
+  const hi = fitIndex(sizes, 'h', h);
+  const wi = fitIndex(sizes, 'w', w);
+  if (hi == null && wi == null) return { none: true };
+
+  const flags = [];
+  let idx = Math.max(hi ?? -1, wi ?? -1);
+  let over = false;
+  if (idx >= sizes.length) { over = true; idx = sizes.length - 1; }
+
+  const s = sizes[idx];
+  const why = [];
+  if (hi != null) why.push(`키 ${h}cm → ${hi >= sizes.length ? '최대 사이즈 초과' : sizes[hi].label}`);
+  if (wi != null) why.push(`몸무게 ${w}kg → ${wi >= sizes.length ? '최대 사이즈 초과' : sizes[wi].label}`);
+
+  if (over) flags.push(['b-bad', '가장 큰 사이즈보다 커요']);
+  if (hi != null && wi != null && hi !== wi && hi < sizes.length && wi < sizes.length) {
+    flags.push(['b-warn', '키·몸무게 중 큰 쪽 기준']);
+  }
+  const first = sizes[0];
+  if (!over && idx === 0 && h != null && first.h && first.h[0] != null && h < first.h[0] - 3) {
+    flags.push(['b-warn', '가장 작은 사이즈도 클 수 있어요']);
+  }
+
+  // 경계값: 상한까지 남은 여유가 적으면 한 사이즈 업 제안
+  let tight = false;
+  if (!over) {
+    if (h != null && s.h && s.h[1] != null && s.h[1] - h <= 2) tight = true;
+    if (w != null && s.w && s.w[1] != null && s.w[1] - w <= 0.5) tight = true;
+  }
+  let up = null;
+  if (!over && idx + 1 < sizes.length && (tight || cat === 'outer')) {
+    up = idx + 1;
+    flags.push(['b-ok', cat === 'outer' && !tight ? '아우터는 한 사이즈 업도 좋아요' : '상한에 가까워요 · 한 사이즈 업 추천']);
+  }
+  return { idx, up, over, flags, why: why.join(' · ') };
+}
+
+function shopCharts() {
+  const allow = SHOP.brands;
+  return BRANDS.filter((c) => !allow || allow.includes(c.brand));
+}
+
+function rowHtml(s, i, rec) {
+  const cls = rec && i === rec.idx ? 'pick' : rec && i === rec.up ? 'pick2' : '';
+  return `<tr class="${cls}"><td>${s.label}${s.alt ? `<small>${s.alt}</small>` : ''}</td>
+    <td>${fmtRange(s.h)}</td><td>${fmtRange(s.w)}</td><td>${s.age || '-'}</td></tr>`;
+}
+
+const EMPTY_SVG = `<svg viewBox="0 0 120 80" fill="none"><path d="M44 14 28 22l6 13 6-3v34h40V32l6 3 6-13-16-8c0 5-6 9-14 9s-14-4-14-9Z" fill="var(--c2)" stroke="var(--c1)" stroke-width="2" stroke-linejoin="round"/><circle cx="52" cy="44" r="2.5" fill="var(--deep)"/><circle cx="68" cy="44" r="2.5" fill="var(--deep)"/><path d="M55 52c3 3 7 3 10 0" stroke="var(--deep)" stroke-width="2" stroke-linecap="round"/></svg>`;
+
+function renderShop() {
+  $('shopName').textContent = `${SHOP.name} 사이즈 가이드`;
+  document.title = `${SHOP.name} 사이즈 가이드`;
+}
+
+function renderBrandChips() {
+  const names = [...new Set(shopCharts().map((c) => c.brand))];
+  if (state.brand && !names.includes(state.brand)) state.brand = '';
+  $('brandChips').innerHTML = [['', '전체'], ...names.map((n) => [n, n])].map(([v, t]) =>
+    `<button class="chip ${v === state.brand ? 'on' : ''}" data-v="${v}">${t}</button>`).join('');
+}
+
+function render() {
+  const hRaw = $('h').value.trim(), wRaw = $('w').value.trim();
+  const h = hRaw === '' ? null : parseFloat(hRaw);
+  const w = wRaw === '' ? null : parseFloat(wRaw);
+  const hasInput = h != null || w != null;
+
+  const charts = shopCharts().filter((c) =>
+    (state.line === 'all' || c.line === state.line) && (!state.brand || c.brand === state.brand));
+
+  if (!hasInput) {
+    $('status').innerHTML = '';
+    $('grid').innerHTML = `<div class="empty">${EMPTY_SVG}키나 몸무게를 입력해 주세요<br>둘 다 넣으면 더 정확해요</div>`;
+    return;
+  }
+  const catName = { top: '상의', bottom: '하의', outer: '아우터' }[state.cat];
+  const who = [h != null ? `${h}cm` : '', w != null ? `${w}kg` : ''].filter(Boolean).join(' · ');
+  $('status').innerHTML = `<b>${who}</b> 아이의 ${catName} 추천 사이즈예요`;
+
+  $('grid').innerHTML = charts.map((c, n) => {
+    const rec = recommend(c, h, w, state.cat);
+    let head, body = '';
+    if (rec.none) {
+      head = `<div class="bubble none">정보<br>없음</div>`;
+      body = `<p class="note">이 브랜드 표는 ${c.sizes[0].h ? '키' : '몸무게'} 기준이에요. ${c.sizes[0].h ? '키' : '몸무게'}를 입력해 주세요.</p>`;
+    } else {
+      const s = c.sizes[rec.idx];
+      const upS = rec.up != null ? c.sizes[rec.up] : null;
+      head = `<div class="bubble ${s.label.length > 2 ? 'small' : ''} ${rec.over ? 'over' : ''}">${s.label}</div>`;
+      body = `<div class="why">${rec.why}</div>
+        ${rec.flags.length ? `<div class="badges">${rec.flags.map(([k, t]) => `<span class="badge ${k}">${t}</span>`).join('')}</div>` : ''}`;
+      c._alt = [s.alt, upS ? `여유 있게 <b>${upS.label}</b>` : ''].filter(Boolean).join(' · ');
+    }
+    const pick = rec.none ? null : rec;
+    return `<article class="card" style="animation-delay:${n * 30}ms">
+      <div class="card-top">${head}
+        <div><div class="brand">${c.brand}</div><span class="tag">${c.title}</span>
+        ${!rec.none && c._alt ? `<div class="alt">${c._alt}</div>` : ''}</div>
+      </div>
+      ${body}
+      <details><summary>사이즈표 보기</summary>
+        <table><thead><tr><th>사이즈</th><th>키(cm)</th><th>몸무게(kg)</th><th>연령</th></tr></thead>
+        <tbody>${c.sizes.map((s, i) => rowHtml(s, i, pick)).join('')}</tbody></table>
+        ${c.note ? `<p class="note">${c.note}</p>` : ''}
+      </details>
+    </article>`;
+  }).join('');
+}
+
+function bindChips(id, key, after) {
+  $(id).addEventListener('click', (e) => {
+    const b = e.target.closest('button'); if (!b) return;
+    [...$(id).children].forEach((x) => x.classList.toggle('on', x === b));
+    state[key] = b.dataset.v; if (after) after(); render();
+  });
+}
+
+renderShop();
+renderBrandChips();
+bindChips('cat', 'cat');
+bindChips('lineFilter', 'line');
+bindChips('brandChips', 'brand');
+document.querySelectorAll('[data-step]').forEach((b) => b.addEventListener('click', () => {
+  const input = $(b.dataset.step);
+  const base = input.value === '' ? parseFloat(input.placeholder) : parseFloat(input.value);
+  input.value = Math.max(0, Math.round((base + parseFloat(b.dataset.d)) * 10) / 10);
+  render();
+}));
+$('h').addEventListener('input', render);
+$('w').addEventListener('input', render);
+render();
+</script>
+</body>
+</html>
