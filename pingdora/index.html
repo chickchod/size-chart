@@ -200,6 +200,15 @@ const SHOP = { name: '핑도라', brands: null };
   - age: 표에 적힌 권장 연령 (표시용)
 */
 const BRANDS = [
+  { brand: '더고구마', line: 'kids', title: '키즈 · 주니어', note: '몸무게 정보가 없어 키로만 추천해요. 작게 나온 디자인은 한 사이즈 업을 추천해요.', sizes: [
+    { label: 'XS', age: '1~3세',  h: [85, 92],   w: null },
+    { label: 'S',  age: '3~4세',  h: [92, 100],  w: null },
+    { label: 'M',  age: '4~5세',  h: [100, 108], w: null },
+    { label: 'L',  age: '5~6세',  h: [108, 115], w: null },
+    { label: 'XL', age: '6~7세',  h: [115, 122], w: null },
+    { label: 'JS', age: '7~8세',  h: [122, 129], w: null },
+    { label: 'JM', age: '8~10세', h: [129, 136], w: null },
+  ]},
   { brand: '더랄라', line: 'baby', title: '베이비', sizes: [
     { label: 'XS', alt: '0~6m',  age: '0~6개월',  h: [null, 68], w: [4, 7] },
     { label: 'S',  alt: '6~12m', age: '6~12개월', h: [68, 76],  w: [7, 10] },
@@ -245,6 +254,17 @@ const BRANDS = [
     { label: 'L',  alt: '3 · 100', h: [90, 100],  w: [null, 17] },
     { label: 'XL', alt: '4 · 110', h: [100, 110], w: [null, 19] },
   ]},
+  { brand: '베베홀릭', line: 'baby', title: '기본', note: '몸무게 정보가 없어 키로만 추천해요.', sizes: [
+    { label: 'S',  age: '3~6개월',   h: [60, 70],  w: null },
+    { label: 'M',  age: '6~12개월',  h: [70, 80],  w: null },
+    { label: 'L',  age: '12~18개월', h: [80, 90],  w: null },
+    { label: 'XL', age: '18~24개월', h: [90, 100], w: null },
+  ]},
+  { brand: '베베홀릭', line: 'baby', title: '아우터', note: '몸무게 정보가 없어 키로만 추천해요.', sizes: [
+    { label: 'S', age: '6~12개월',  h: [70, 80],  w: null },
+    { label: 'M', age: '12~18개월', h: [80, 90],  w: null },
+    { label: 'L', age: '18~24개월', h: [90, 100], w: null },
+  ]},
   { brand: '보니토', line: 'baby', title: '베이비 (2세 이하)', note: '같은 12m이라도 베이비 라인이 좀 더 작게 나와요. 키 정보가 없어 몸무게로만 추천해요.', sizes: [
     { label: '6m',  age: '3~6개월',  h: null, w: [null, 7] },
     { label: '12m', age: '6~12개월', h: null, w: [null, 10] },
@@ -288,11 +308,35 @@ const BRANDS = [
     { label: 'M', alt: '90',  age: '1~3세', h: [80, 100],  w: [10, 15] },
     { label: 'L', alt: '100', age: '3~5세', h: [90, 115],  w: [13, 24] },
   ]},
+  { brand: '아우스튜디오', line: 'kids', title: '베이비&키즈', note: '몸무게 정보가 없어 키로만 추천해요.', sizes: [
+    { label: 'XS', alt: '1 · 80',  age: '10~18개월', h: [70, 80],   w: null },
+    { label: 'S',  alt: '2 · 90',  age: '18~24개월', h: [80, 90],   w: null },
+    { label: 'M',  alt: '3 · 100', age: '24~36개월', h: [90, 100],  w: null },
+    { label: 'L',  alt: '4 · 110', age: '36~48개월', h: [100, 110], w: null },
+  ]},
   { brand: '아토메메', line: 'kids', title: '베이비&키즈', note: '몸무게 정보가 없어 키로만 추천해요. 양말: XS 10-12 · S 12-15 · M 15-17cm', sizes: [
     { label: 'S',  alt: '1 · 80',  age: '10~18개월', h: [70, 80],   w: null },
     { label: 'M',  alt: '2 · 90',  age: '18~24개월', h: [80, 90],   w: null },
     { label: 'L',  alt: '3 · 100', age: '24~36개월', h: [90, 100],  w: null },
     { label: 'XL', alt: '4 · 110', age: '36~48개월', h: [100, 110], w: null },
+  ]},
+  { brand: '오뜨베베', line: 'baby', title: '베베', sizes: [
+    { label: 'BS', age: '0~6개월',  h: [50, 65], w: [3, 8] },
+    { label: 'BM', age: '6~12개월', h: [65, 75], w: [8, 10] },
+  ]},
+  { brand: '오뜨베베', line: 'kids', title: '키즈 (26가을~ 새 사이즈)', note: '2026 가을 시즌부터 사이즈가 한 단계씩 바뀌었어요. 예) 기존 XS를 입던 아이는 이번 가을부터 S', sizes: [
+    { label: 'XS', alt: '기존 BM', age: '6~12개월 (1Y)',  h: [65, 75],   w: [8, 10] },
+    { label: 'S',  alt: '기존 XS', age: '12~24개월 (2Y)', h: [75, 85],   w: [10, 12] },
+    { label: 'M',  alt: '기존 S',  age: '24~36개월 (3Y)', h: [85, 95],   w: [12, 13] },
+    { label: 'L',  alt: '기존 M',  age: '36~48개월 (4Y)', h: [95, 105],  w: [13, 15] },
+    { label: 'XL', alt: '기존 L',  age: '48~60개월 (5Y)', h: [105, 115], w: [15, 17] },
+  ]},
+  { brand: '칩', line: 'kids', title: '베이비&키즈', note: '몸무게 정보가 없어 키로만 추천해요.', sizes: [
+    { label: '①', h: [65, 75],   w: null },
+    { label: '②', h: [75, 85],   w: null },
+    { label: '③', h: [85, 95],   w: null },
+    { label: '④', h: [95, 105],  w: null },
+    { label: '⑤', h: [105, 115], w: null },
   ]},
 ];
 
