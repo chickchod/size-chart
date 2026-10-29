@@ -114,6 +114,23 @@
 
   footer { margin-top: 36px; text-align: center; font-size: 12px; color: var(--muted); line-height: 1.7; }
 
+  /* 이미지 저장 */
+  .save { margin-top: 10px; font-size: 13px; padding: 6px 14px; }
+  .status .save { display: inline-flex; margin-top: 12px; }
+  .imgview {
+    position: fixed; inset: 0; z-index: 50; background: rgba(40, 30, 25, .55);
+    display: grid; place-items: center; padding: 16px;
+  }
+  .imgview[hidden] { display: none; }
+  .imgview-box {
+    background: var(--paper); border-radius: var(--radius); padding: 16px; width: 100%; max-width: 480px;
+    max-height: 100%; overflow: auto; text-align: center;
+  }
+  .imgview img { width: 100%; height: auto; display: block; border-radius: 12px; border: 1px solid var(--line); }
+  .imgview p { font-size: 13px; color: var(--muted); margin: 10px 0; }
+  .imgview-btns { display: flex; gap: 8px; justify-content: center; }
+  .imgview-btns .chip { text-decoration: none; }
+
   @media (max-width: 560px) {
     .form { grid-template-columns: minmax(0, 1fr); padding: 18px; }
     .grid { grid-template-columns: 1fr; }
@@ -183,6 +200,17 @@
     평균적인 사이즈표 기준이며 아이의 체형이나 디자인의 핏감에 따라 차이가 있을 수 있어요.<br>
     여유 있게 입히고 싶다면 한 사이즈 크게 골라주세요.
   </footer>
+</div>
+
+<div class="imgview" id="imgview" hidden>
+  <div class="imgview-box">
+    <div class="imgview-btns">
+      <a class="chip on" id="imgviewDl" download>이미지 다운로드</a>
+      <button type="button" class="chip" id="imgviewClose">닫기</button>
+    </div>
+    <p>이미지를 길게 눌러서 저장할 수도 있어요</p>
+    <img id="imgviewImg" alt="">
+  </div>
 </div>
 
 <script>
@@ -417,6 +445,13 @@ function rowHtml(s, i, rec) {
 
 const EMPTY_SVG = `<svg viewBox="0 0 120 80" fill="none"><path d="M44 14 28 22l6 13 6-3v34h40V32l6 3 6-13-16-8c0 5-6 9-14 9s-14-4-14-9Z" fill="var(--c2)" stroke="var(--c1)" stroke-width="2" stroke-linejoin="round"/><circle cx="52" cy="44" r="2.5" fill="var(--deep)"/><circle cx="68" cy="44" r="2.5" fill="var(--deep)"/><path d="M55 52c3 3 7 3 10 0" stroke="var(--deep)" stroke-width="2" stroke-linecap="round"/></svg>`;
 
+const DL_SVG = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11m-5-5 5 5 5-5M5 20h14"/></svg>`;
+
+function readInput() {
+  const hRaw = $('h').value.trim(), wRaw = $('w').value.trim();
+  return { h: hRaw === '' ? null : parseFloat(hRaw), w: wRaw === '' ? null : parseFloat(wRaw) };
+}
+
 function renderShop() {
   $('shopName').textContent = `${SHOP.name} 사이즈 가이드`;
   document.title = `${SHOP.name} 사이즈 가이드`;
@@ -430,9 +465,7 @@ function renderBrandChips() {
 }
 
 function render() {
-  const hRaw = $('h').value.trim(), wRaw = $('w').value.trim();
-  const h = hRaw === '' ? null : parseFloat(hRaw);
-  const w = wRaw === '' ? null : parseFloat(wRaw);
+  const { h, w } = readInput();
   const hasInput = h != null || w != null;
 
   const charts = shopCharts().filter((c) =>
@@ -445,7 +478,8 @@ function render() {
   }
   const catName = { top: '상의', bottom: '하의', outer: '아우터' }[state.cat];
   const who = [h != null ? `${h}cm` : '', w != null ? `${w}kg` : ''].filter(Boolean).join(' · ');
-  $('status').innerHTML = `<b>${who}</b> 아이의 ${catName} 추천 사이즈예요`;
+  $('status').innerHTML = `<b>${who}</b> 아이의 ${catName} 추천 사이즈예요<br>
+    <button type="button" class="chip save" data-save="result">${DL_SVG}결과 이미지로 저장</button>`;
 
   $('grid').innerHTML = charts.map((c, n) => {
     const rec = recommend(c, h, w, state.cat);
@@ -472,9 +506,279 @@ function render() {
         <table><thead><tr><th>사이즈</th><th>키(cm)</th><th>몸무게(kg)</th><th>연령</th></tr></thead>
         <tbody>${c.sizes.map((s, i) => rowHtml(s, i, pick)).join('')}</tbody></table>
         ${c.note ? `<p class="note">${c.note}</p>` : ''}
+        <button type="button" class="chip save" data-save="chart" data-i="${BRANDS.indexOf(c)}">${DL_SVG}사이즈표 이미지 저장</button>
       </details>
     </article>`;
   }).join('');
+}
+
+/*
+  이미지(PNG) 저장
+  - 화면을 캡처하지 않고 캔버스에 직접 그려요 (외부 라이브러리 없이 동작)
+  - 먼저 위치를 계산하면서 그리기 작업(ops)을 모아두고, 전체 높이가 정해지면 한 번에 그립니다
+*/
+const FONT = '"Pretendard", -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif';
+const MEASURE = document.createElement('canvas').getContext('2d');
+const css = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+const BADGE_COLORS = { 'b-warn': ['#fbf1e3', '--warn'], 'b-bad': ['#f9e7e3', '--bad'], 'b-ok': ['#e9f2ea', '--ok'] };
+
+function setFont(ctx, size, weight) { ctx.font = `${weight} ${size}px ${FONT}`; }
+function textWidth(text, size, weight) { setFont(MEASURE, size, weight); return MEASURE.measureText(text).width; }
+
+function wrapText(text, size, weight, maxW) {
+  setFont(MEASURE, size, weight);
+  const fits = (t) => MEASURE.measureText(t).width <= maxW;
+  const lines = [];
+  let line = '';
+  for (const word of String(text).split(' ')) {
+    const t = line ? `${line} ${word}` : word;
+    if (fits(t)) { line = t; continue; }
+    if (line) lines.push(line);
+    line = '';
+    for (const ch of word) { // 한 줄에 안 들어가는 긴 단어는 글자 단위로 자르기
+      if (line && !fits(line + ch)) { lines.push(line); line = ''; }
+      line += ch;
+    }
+  }
+  if (line) lines.push(line);
+  return lines;
+}
+
+function newSheet() {
+  const ops = [];
+  return {
+    // maxW를 넘으면 글자 크기를 줄여서 맞춤
+    text(str, x, y, size, weight, color, align = 'left', maxW = 0) {
+      ops.push((ctx) => {
+        let s = size;
+        setFont(ctx, s, weight);
+        while (maxW && s > 9 && ctx.measureText(str).width > maxW) setFont(ctx, --s, weight);
+        ctx.fillStyle = color; ctx.textAlign = align; ctx.textBaseline = 'middle';
+        ctx.fillText(str, x, y);
+      });
+    },
+    box(x, y, w, h, r, fill, stroke) {
+      ops.push((ctx) => {
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
+        ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r);
+        ctx.closePath();
+        if (fill) { ctx.fillStyle = fill; ctx.fill(); }
+        if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = 1; ctx.stroke(); }
+      });
+    },
+    circle(cx, cy, r, fill, ring) {
+      ops.push((ctx) => {
+        ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.fillStyle = fill; ctx.fill();
+        if (ring) { ctx.beginPath(); ctx.arc(cx, cy, r - 1, 0, Math.PI * 2); ctx.strokeStyle = ring; ctx.lineWidth = 2; ctx.stroke(); }
+      });
+    },
+    pill(str, x, y, size, fg, bg) { // y = 위쪽, 반환값 = 너비
+      const w = textWidth(str, size, 500) + 20;
+      this.box(x, y, w, size + 10, (size + 10) / 2, bg);
+      this.text(str, x + 10, y + (size + 10) / 2, size, 500, fg);
+      return w;
+    },
+    // 나중에 높이가 정해진 뒤 채울 자리 (카드 배경 등)
+    slot() { const i = ops.length; ops.push(() => {}); return (fn) => { ops[i] = fn; }; },
+    drawOn(ctx) { ops.forEach((op) => op(ctx)); },
+    toCanvas(width, height, bg) {
+      // 2배 해상도로 그리되, 아이폰 캔버스 한도(약 1,600만 픽셀)를 넘지 않게
+      const scale = Math.min(2, Math.sqrt(16e6 / (width * height)));
+      const cv = document.createElement('canvas');
+      cv.width = Math.round(width * scale); cv.height = Math.round(height * scale);
+      const ctx = cv.getContext('2d');
+      ctx.scale(scale, scale);
+      ctx.fillStyle = bg; ctx.fillRect(0, 0, width, height);
+      this.drawOn(ctx);
+      return cv;
+    },
+  };
+}
+
+function pageUrl() { return location.protocol.startsWith('http') ? location.host + location.pathname : ''; }
+function inputLabel(h, w) { return [h != null ? `${h}cm` : '', w != null ? `${w}kg` : ''].filter(Boolean).join(' · '); }
+
+function drawResultCard(S, c, h, w, x, y, cw) {
+  const ink = css('--ink'), muted = css('--muted'), deep = css('--deep');
+  const rec = recommend(c, h, w, state.cat);
+  const setBg = S.slot();
+  const ip = 16, B = 60, tx = x + ip + B + 14, tw = cw - (tx - x) - ip;
+
+  const s = rec.none ? null : c.sizes[rec.idx];
+  const upS = rec.none || rec.up == null ? null : c.sizes[rec.up];
+  const alt = [s && s.alt, upS ? `여유 있게 ${upS.label}` : ''].filter(Boolean).join(' · ');
+  const altLines = alt ? wrapText(alt, 13, 500, tw) : [];
+  const textH = 22 + 4 + 22 + (altLines.length ? 6 + altLines.length * 18 : 0);
+  const topH = Math.max(B, textH);
+
+  // 사이즈 동그라미
+  const cx = x + ip + B / 2, cy = y + ip + topH / 2;
+  if (rec.none) {
+    S.circle(cx, cy, B / 2, css('--c3'));
+    S.text('정보', cx, cy - 8, 12, 600, muted, 'center');
+    S.text('없음', cx, cy + 8, 12, 600, muted, 'center');
+  } else {
+    S.circle(cx, cy, B / 2, rec.over ? css('--c3') : css('--c1'), rec.over ? css('--c2') : null);
+    S.text(s.label, cx, cy, s.label.length > 2 ? 17 : 21, 800, rec.over ? deep : '#fff', 'center', B - 10);
+  }
+
+  // 브랜드 · 라인 · 대체 표기
+  let ty = y + ip + (topH - textH) / 2;
+  S.text(c.brand, tx, ty + 11, 17, 800, ink, 'left', tw);
+  ty += 26;
+  S.pill(c.title, tx, ty, 12, deep, css('--c3'));
+  ty += 22;
+  if (altLines.length) {
+    ty += 6;
+    altLines.forEach((l) => { S.text(l, tx, ty + 9, 13, 500, muted); ty += 18; });
+  }
+
+  let by = y + ip + topH + 12;
+  const iw = cw - ip * 2;
+  if (rec.none) {
+    const key = c.sizes[0].h ? '키' : '몸무게';
+    wrapText(`이 브랜드 표는 ${key} 기준이에요. ${key}를 입력해 주세요.`, 12, 400, iw).forEach((l) => {
+      S.text(l, x + ip, by + 9, 12, 400, muted); by += 18;
+    });
+  } else {
+    const whyLines = wrapText(rec.why, 13, 400, iw - 24);
+    const boxH = whyLines.length * 19 + 16;
+    S.box(x + ip, by, iw, boxH, 12, css('--bg'));
+    whyLines.forEach((l, i) => S.text(l, x + ip + 12, by + 8 + i * 19 + 9.5, 13, 400, muted));
+    by += boxH;
+    if (rec.flags.length) {
+      by += 10;
+      let bx = x + ip;
+      rec.flags.forEach(([k, t]) => {
+        const bw = textWidth(t, 12, 500) + 20;
+        if (bx > x + ip && bx + bw > x + ip + iw) { bx = x + ip; by += 28; }
+        const [bg, fg] = BADGE_COLORS[k];
+        bx += S.pill(t, bx, by, 12, css(fg), bg) + 6;
+      });
+      by += 22;
+    }
+  }
+  const ch = by + ip - y;
+  setBg(cardBg(x, y, cw, ch));
+  return y + ch;
+}
+
+// 카드 배경 (흰 바탕 + 테두리)
+function cardBg(x, y, w, h) {
+  const bg = newSheet();
+  bg.box(x, y, w, h, 18, css('--paper'), css('--line'));
+  return (ctx) => bg.drawOn(ctx);
+}
+
+function drawFooter(S, W, y) {
+  const muted = css('--muted');
+  S.text('평균적인 사이즈표 기준이며 체형이나 디자인에 따라 차이가 있을 수 있어요.', W / 2, y, 11, 400, muted, 'center', W - 40);
+  y += 18;
+  const url = pageUrl();
+  if (url) { S.text(url, W / 2, y, 11, 600, css('--deep'), 'center', W - 40); y += 18; }
+  return y;
+}
+
+function drawResult() {
+  const { h, w } = readInput();
+  const charts = shopCharts().filter((c) =>
+    (state.line === 'all' || c.line === state.line) && (!state.brand || c.brand === state.brand));
+  const catName = { top: '상의', bottom: '하의', outer: '아우터' }[state.cat];
+  const W = 560, P = 20, S = newSheet();
+
+  let y = 38;
+  S.text(`${SHOP.name} 사이즈 가이드`, W / 2, y, 14, 700, css('--deep'), 'center'); y += 34;
+  S.text('우리 아이 추천 사이즈', W / 2, y, 26, 800, css('--ink'), 'center'); y += 32;
+  S.text(`${inputLabel(h, w)} · ${catName}`, W / 2, y, 15, 600, css('--deep'), 'center'); y += 28;
+  charts.forEach((c) => { y = drawResultCard(S, c, h, w, P, y, W - P * 2) + 12; });
+  y = drawFooter(S, W, y + 16);
+  return S.toCanvas(W, y + 14, css('--bg'));
+}
+
+function drawChart(c) {
+  const { h, w } = readInput();
+  const rec = h != null || w != null ? recommend(c, h, w, state.cat) : null;
+  const pick = rec && !rec.none ? rec : null;
+  const ink = css('--ink'), muted = css('--muted'), deep = css('--deep');
+  const W = 480, P = 24, iw = W - P * 2, S = newSheet();
+
+  let y = 34;
+  S.text(`${SHOP.name} 사이즈 가이드`, P, y, 13, 700, deep); y += 30;
+  const bw = Math.min(textWidth(c.brand, 22, 800), iw);
+  S.text(c.brand, P, y, 22, 800, ink, 'left', iw);
+  const tagW = textWidth(c.title, 12, 500) + 20;
+  if (P + bw + 10 + tagW <= W - P) {
+    S.pill(c.title, P + bw + 10, y - 11, 12, deep, css('--c3'));
+  } else {
+    y += 26; S.pill(c.title, P, y - 11, 12, deep, css('--c3'));
+  }
+  y += 34;
+
+  // 표
+  const cols = [0.24, 0.24, 0.24, 0.28].map((f) => f * iw);
+  const colX = cols.map((_, i) => P + cols.slice(0, i).reduce((a, b) => a + b, 0) + cols[i] / 2);
+  ['사이즈', '키(cm)', '몸무게(kg)', '연령'].forEach((t, i) => S.text(t, colX[i], y, 12, 500, muted, 'center'));
+  y += 18;
+  c.sizes.forEach((s, i) => {
+    const isPick = pick && i === pick.idx, isUp = pick && i === pick.up;
+    const rh = s.alt ? 46 : 38;
+    S.box(P, y, iw, rh, 10, isPick ? css('--c2') : isUp ? css('--c3') : css('--bg'));
+    const color = isPick ? deep : ink, weight = isPick ? 700 : 400;
+    const mid = y + rh / 2;
+    if (s.alt) {
+      S.text(s.label, colX[0], mid - 8, 14, 700, color, 'center', cols[0] - 8);
+      S.text(s.alt, colX[0], mid + 10, 11, 400, muted, 'center', cols[0] - 8);
+    } else {
+      S.text(s.label, colX[0], mid, 14, 700, color, 'center', cols[0] - 8);
+    }
+    [fmtRange(s.h), fmtRange(s.w), s.age || '-'].forEach((t, j) =>
+      S.text(t, colX[j + 1], mid, 13, weight, color, 'center', cols[j + 1] - 8));
+    y += rh + 4;
+  });
+
+  if (c.note) {
+    y += 8;
+    wrapText(c.note, 12, 400, iw).forEach((l) => { S.text(l, P, y + 9, 12, 400, muted); y += 18; });
+  }
+  if (pick) {
+    y += 8;
+    S.text(`${inputLabel(h, w)} 기준 추천 사이즈를 표시했어요`, P, y + 9, 12, 600, deep, 'left', iw);
+    y += 18;
+  }
+  y = drawFooter(S, W, y + 22);
+  return S.toCanvas(W, y + 10, css('--bg'));
+}
+
+function fileName(...parts) {
+  return parts.join('_').replace(/\s*·\s*/g, '_').replace(/[\s\\/:*?"<>|()&]+/g, '_').replace(/_+/g, '_').replace(/_$/, '') + '.png';
+}
+
+let viewUrl = null;
+function showImage(canvas, name) {
+  canvas.toBlob((blob) => {
+    if (viewUrl) URL.revokeObjectURL(viewUrl);
+    viewUrl = URL.createObjectURL(blob);
+    $('imgviewImg').src = viewUrl;
+    $('imgviewDl').href = viewUrl;
+    $('imgviewDl').download = name;
+    $('imgview').hidden = false;
+  }, 'image/png');
+}
+
+async function saveImage(kind, i) {
+  try { // 웹폰트가 다 받아진 뒤에 그려야 글꼴이 맞게 나와요
+    await Promise.all([400, 500, 600, 700, 800].map((wt) => document.fonts.load(`${wt} 16px Pretendard`, '가A1')));
+  } catch (e) { /* 글꼴을 못 받아도 기본 글꼴로 저장 */ }
+  if (kind === 'result') {
+    const { h, w } = readInput();
+    showImage(drawResult(), fileName(SHOP.name, '추천사이즈', inputLabel(h, w).replace(/ · /g, '_')));
+  } else {
+    const c = BRANDS[i];
+    showImage(drawChart(c), fileName(SHOP.name, c.brand, c.title));
+  }
 }
 
 function bindChips(id, key, after) {
@@ -498,6 +802,12 @@ document.querySelectorAll('[data-step]').forEach((b) => b.addEventListener('clic
 }));
 $('h').addEventListener('input', render);
 $('w').addEventListener('input', render);
+document.addEventListener('click', (e) => {
+  const b = e.target.closest('[data-save]'); if (!b) return;
+  saveImage(b.dataset.save, Number(b.dataset.i));
+});
+$('imgviewClose').addEventListener('click', () => { $('imgview').hidden = true; });
+$('imgview').addEventListener('click', (e) => { if (e.target === $('imgview')) $('imgview').hidden = true; });
 render();
 </script>
 </body>
